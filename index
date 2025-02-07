@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette Castorama</title>
+    <link rel="icon" type="image/jpeg" href="castorama.webp">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #1a1a1a, #2d2d2d);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+        }
+
+        /* Popup Trustpilot modifiée */
+        .trustpilot-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .trustpilot-popup.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .trustpilot-content {
+            background: #2d2d2d;
+            padding: 30px 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            position: relative;
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .trustpilot-close {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ffffff;
+            transition: transform 0.3s ease;
+        }
+
+        .trustpilot-close:hover {
+            color: #d4af37;
+            transform: scale(1.1);
+        }
+
+        .trustpilot-logo {
+            width: 180px;
+            margin-bottom: 15px;
+        }
+
+        .trustpilot-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Animation Shine pour "Donner mon avis" */
+        .trustpilot-button {
+            background: linear-gradient(to right, #0066ff, #00a3ff);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trustpilot-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255,255,255,0.4),
+                transparent
+            );
+            transition: all 0.6s ease;
+        }
+
+        .trustpilot-button:hover::before {
+            left: 100%;
+        }
+
+        /* Style original pour "Jouer maintenant" */
+        .trustpilot-button.secondary {
+            background: transparent;
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            transition: all 0.3s ease;
+        }
+
+        .trustpilot-button.secondary:hover {
+            background: #d4af37;
+            color: #2d2d2d;
+            letter-spacing: 1.5px;
+        }
+
+        .trustpilot-button.secondary::before {
+            display: none;
+        }
+
+        .center-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .roulette-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px;
+        }
+
+        .roulette {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid #d4af37;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: 
+                conic-gradient(
+                    #0057b8 0deg 45deg,
+                    #ffd700 45deg 90deg,
+                    #0057b8 90deg 135deg,
+                    #ffd700 135deg 180deg,
+                    #0057b8 180deg 225deg,
+                    #ffd700 225deg 270deg,
+                    #0057b8 270deg 315deg,
+                    #ffd700 315deg 360deg
+                );
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.6), 
+                       inset 0px 0px 15px rgba(0, 0, 0, 0.4);
+            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .roulette::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .roulette span {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            transform-origin: center;
+            transform: rotate(var(--angle)) translateY(-125px) rotate(-90deg);
+            white-space: nowrap;
+            z-index: 2;
+            letter-spacing: 0.5px;
+        }
+
+        .notch {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 35px;
+            background: linear-gradient(to right, #d4af37, #fffacd, #d4af37);
+            border-radius: 2px;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 20px;
+            cursor: pointer;
+            background: linear-gradient(to right, #0066ff, #00a3ff);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
+        }
+
+        .button.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            animation: buttonGlow 3s linear infinite;
+        }
+
+        @keyframes buttonGlow {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .button:hover:not(.disabled) {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.6);
+        }
+
+        .button:active:not(.disabled) {
+            transform: scale(0.95);
+        }
+
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .popup.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup-content {
+            background: linear-gradient(45deg, #0057b8, #0085ff);
+            padding: 40px 60px;
+            border-radius: 15px;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 0 40px rgba(0, 133, 255, 0.5);
+            position: relative;
+            animation: popupAnim 0.5s ease-out, pulse 2s ease-in-out infinite;
+            border: 3px solid #d4af37;
+        }
+
+        @keyframes popupAnim {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .logo {
+            width: 250px;
+            margin-bottom: 20px;
+            filter: brightness(1.2);
+        }
+    </style>
+</head>
+<body>
+    <audio id="spinSound" src="spin-sound.mp3"></audio>
+    <audio id="winSound" src="win-sound.mp3"></audio>
+
+    <div class="trustpilot-popup active" id="trustpilotPopup">
+        <div class="trustpilot-content">
+            <span class="trustpilot-close" onclick="closeTrustpilot()">&times;</span>
+            <img src="trustpilot_logo.png" alt="Trustpilot" class="trustpilot-logo">
+            <h3 style="color: #d4af37; margin: 15px 0; font-size: 20px;">Partagez votre expérience</h3>
+            <p style="color: white; font-size: 14px; line-height: 1.5;">Nous apprécions votre feedback !<br>Prenez 1 minute pour nous évaluer.</p>
+            <div class="trustpilot-buttons">
+                <a href="https://fr.trustpilot.com/evaluate/www.castorama.fr" target="_blank" class="trustpilot-button">
+                    Donner mon avis
+                </a>
+                <button onclick="closeTrustpilot()" class="trustpilot-button secondary">
+                    Jouer maintenant
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="center-container">
+        <img src="./Castorama_Logo.svg.png" alt="Logo Casino" class="logo">
+        
+        <div class="roulette-container">
+            <div class="notch"></div>
+            <div class="roulette" id="roulette">
+                <span style="--angle: 22.5deg;">Téléviseur 4K</span>
+                <span style="--angle: 67.5deg;">Canapé Confort</span>
+                <span style="--angle: 112.5deg;">Table Basse</span>
+                <span style="--angle: 157.5deg;">Lit Double</span>
+                <span style="--angle: 202.5deg;">Réduction 20%</span>
+                <span style="--angle: 247.5deg;">Bon d'achat 50€</span>
+                <span style="--angle: 292.5deg;">Fauteuil Design</span>
+                <span style="--angle: 337.5deg;">Lampe Moderne</span>
+            </div>
+        </div>
+
+        <button class="button disabled" onclick="spinRoulette()">TOURNER LA ROULETTE 🎡</button>
+    </div>
+    
+    <div class="popup" id="popup">
+        <div class="popup-content" id="popup-content"></div>
+    </div>
+    
+    <script>
+        let reviewRequestShown = false;
+
+        function closeTrustpilot() {
+            document.getElementById('trustpilotPopup').classList.remove('active');
+            document.querySelector('.button').classList.remove('disabled');
+            reviewRequestShown = true;
+        }
+
+        function spinRoulette() {
+            if (!reviewRequestShown) return;
+
+            const spinSound = document.getElementById("spinSound");
+            const winSound = document.getElementById("winSound");
+            const roulette = document.getElementById("roulette");
+            const popup = document.getElementById("popup");
+            const popupContent = document.getElementById("popup-content");
+
+            spinSound.currentTime = 0;
+            spinSound.play();
+
+            const prizes = [
+                { name: "Téléviseur 4K", probability: 12 },
+                { name: "Canapé Confort", probability: 8 },
+                { name: "Table Basse", probability: 15 },
+                { name: "Lit Double", probability: 10 },
+                { name: "Réduction 20%", probability: 45 },
+                { name: "Bon d'achat 50€", probability: 5 },
+                { name: "Fauteuil Design", probability: 3 },
+                { name: "Lampe Moderne", probability: 2 }
+            ];
+
+            const randomNumber = Math.random() * 100;
+            let cumulative = 0;
+            let selectedPrize;
+
+            for (const prize of prizes) {
+                cumulative += prize.probability;
+                if (randomNumber <= cumulative) {
+                    selectedPrize = prize.name;
+                    break;
+                }
+            }
+
+            const selectedIndex = prizes.findIndex(prize => prize.name === selectedPrize);
+            const finalAngle = 360 * 5 - (selectedIndex * 45) - 22.5;
+
+            roulette.style.transition = "transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)";
+            roulette.style.transform = `rotate(${finalAngle}deg)`;
+
+            setTimeout(() => {
+                spinSound.pause();
+                winSound.play();
+                popupContent.innerText = `🎉 ${selectedPrize} 🎉`;
+                popup.classList.add('active');
+            }, 3000);
+        }
+
+        document.getElementById("popup").addEventListener("click", function() {
+            this.classList.remove('active');
+        });
+
+        document.getElementById('trustpilotPopup').addEventListener('click', function(e) {
+            if (e.target === this) closeTrustpilot();
+        });
+    </script>
+</body>
+</html>
